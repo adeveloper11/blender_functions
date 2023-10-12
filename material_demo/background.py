@@ -1,5 +1,7 @@
 import bpy
 import math
+import mathutils
+import datetime
 def clean_the_scene():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete()
@@ -78,6 +80,7 @@ def create_material3():
     material3.node_tree.links.new(image_tex_node.outputs["Color"], principled_bsdf_node.inputs["Base Color"])
     return material3   
 
+
 def green_tex_node(material3):
     node_location_x_step = 300
     current_node_location_x = -node_location_x_step
@@ -136,11 +139,11 @@ def add_camera():
     cam = bpy.data.objects.new('camera', cam_data) # create new objects for the camera
     bpy.context.collection.objects.link(cam)   # adding the camera to the scene collection
     cam.name = "cam"
-    cam.location = (3., -12, 0.4)
-    cam.scale=(0.040, .280, 3.74)
-    cam.rotation_euler[0] = math.radians(99)
-    cam.rotation_euler[1] = math.radians(-1)
-    cam.rotation_euler[2] = math.radians(8)
+    cam.location = (2.38, -13.8, 2.51)
+    cam.scale=(0.56, .170, 1.74)
+    cam.rotation_euler[0] = math.radians(92)
+    cam.rotation_euler[1] = math.radians(2)
+    cam.rotation_euler[2] = math.radians(3)
     # track the object
     constraint = cam.constraints.new(type = 'TRACK_TO')
     constraint.target = bpy.context.scene.objects.get("cycl")
@@ -157,15 +160,41 @@ def add_scene():
     scene.render.resolution_x = 1080  # Change the width to your desired resolution
     scene.render.resolution_y = 720  # Change the height to your desired resolution
     scene.render.image_settings.file_format = 'PNG'
-#    for angle in range(0, 360):      
-    scene.render.filepath = "C:\\Users\\it\\Downloads\\blendertexture\\renderedImage\\created_4_test.png"
+#    for angle in range(0, 360): 
+    crnt_time = datetime.datetime.now()     
+    n_add =str(crnt_time)[-6:-1]
+    scene.render.filepath = f"C:\\Users\\it\\Downloads\\blendertexture\\renderedImage\\created{n_add}.png"    
     bpy.ops.render.render(write_still=1)
     return scene
 def load_prop(prop_load_path):
     with bpy.data.libraries.load(prop_load_path) as (data_from, data_to):
         data_to.objects = [name for name in data_from.objects]
-
+    for obj in data_to.objects:
+        obj.location = (0, 0, 5)
+        obj.scale = (50, 50, 50)
+        bpy.context.collection.objects.link(obj)
     return data_to.objects
+
+def create_background_material():
+    # Get the environment node tree of the current scene
+    node_tree = bpy.context.scene.world.node_tree
+    tree_nodes = node_tree.nodes
+    # Add Background node
+    node_background = tree_nodes.new(type='ShaderNodeBackground')
+    # Add Environment Texture node
+    node_environment = tree_nodes.new('ShaderNodeTexEnvironment')
+    # Load and assign the image to the node property
+    node_environment.image = bpy.data.images.load("C:\\Users\\it\\Downloads\\blendertexture\\FoodGrapes001_Grapes_NRM_1K_LOD0_METALNESS.png") # Relative path
+    node_environment.location = -300,0
+    # Add Output node
+    node_output = tree_nodes.new(type='ShaderNodeOutputWorld')   
+    node_output.location = 200,0
+    # Link all nodes
+    links = node_tree.links
+    link = links.new(node_environment.outputs["Color"], node_background.inputs["Color"])
+    link = links.new(node_background.outputs["Background"], node_output.inputs["Surface"])
+  
+    
 def main():
     clean_the_scene()
     name = "my_generated_material"
@@ -175,6 +204,8 @@ def main():
     ico_object = add_icosphere()
     add_light()
     add_camera()
+#    background_material()
+    create_background_material()
     mesh_obj = add_mesh()
     floor_obj = add_floor()
     prop_load_path = "C:\\Users\\it\\Downloads\\blendertexture\\FoodGrapes001_Grape001_Cycles.blend"
@@ -183,7 +214,7 @@ def main():
     mesh_obj.data.materials.append(marterial2)
     ico_object.data.materials.append(material3)
     floor_obj.data.materials.append(material)
-    scene = add_scene()
-
+    add_scene()
+    
 
 main()

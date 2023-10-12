@@ -13,10 +13,7 @@ def clean_the_scene():
     # cleans the multiple materials creating 
     bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
 
-
 def create_noise_mask(material):
-    
-     
     
     #setting the location 
     node_location_x_step = 300
@@ -85,11 +82,6 @@ def create_noise_mask(material):
                                     
     
     return color_ramp_node
-    
-    
-
-
-
 
 def create_material(name):
     # creating material
